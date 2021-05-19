@@ -1,4 +1,6 @@
-FROM ubuntu:20.04
+ARG BUILD_ARCH=""
+
+FROM ${BUILD_ARCH}ubuntu:20.04
 
 
 # install needed packages
@@ -22,21 +24,42 @@ RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
                # required for compile ethereum devtools
                software-properties-common \
                protobuf-compiler \
+               # clion integration
+                build-essential \
+                gcc \
+                g++ \
+                gdb \
+                clang \
+                cmake \
+                rsync \
+                tar \
+                ssh \  
                # required to compile restclient and blockbench
-              cmake \
-              libtool \
-              libcurl4-openssl-dev \
-              automake \
-              autoconf \
-              g++ \
-#               libboost-all-dev \
-#               libz3-dev \
+                cmake \
+                g++ \
+                libtool \
+                libcurl4-openssl-dev \
+                automake \
+                autoconf \
                && rm -rf /var/cache/apt/archives
 
+# clion ssh config
+RUN ( \
+    echo 'LogLevel DEBUG2'; \
+    echo 'PermitRootLogin yes'; \
+    echo 'PasswordAuthentication yes'; \
+    echo 'Subsystem sftp /usr/lib/openssh/sftp-server'; \
+  ) > /etc/ssh/sshd_config_test_clion \
+  && mkdir /run/sshd
 
-ARG UID=1097
+# clion user
+RUN useradd -m user \
+  && yes password | passwd user
+RUN usermod -s /bin/bash user
+
+# ARG UID=1097
 # RUN addgroup -S dporto && adduser --uid $UID -g dporto dporto && echo 'dporto ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-# ARG UID=501
+ARG UID=501
 RUN useradd -m --uid=$UID -U dporto && echo 'dporto ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # install packages
@@ -78,9 +101,10 @@ ENV LD_LIBRARY_PATH=/usr/local/lib
 
 COPY . /code
 RUN cd /code/src/macro/kvstore \
-    && make \
+    && make clean && make \
     && cd /code/src/macro/smallbank \
-    && make
+    && make clean && make\
+    && echo "ok"
 
 
 # USER dporto
@@ -93,5 +117,6 @@ RUN cd /code/src/macro/kvstore \
 
 WORKDIR /code
 
-CMD /code/src/macro/kvstore/driver 
+CMD ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/ssh/sshd_config_test_clion"]
+# CMD /code/src/macro/kvstore/driver 
 

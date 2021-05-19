@@ -7,6 +7,18 @@ of different system design choices.
 BlockBench comes with both [macro benchmark workloads](src/macro) for evaluating the overall performance and
 [micro benchmark workloads](src/micro) for evaluating performance of individual layers. 
 
+
+## Build the binary for docker
+### For Mac M1
+```
+docker build . --build-arg BUILD_ARCH=amd64v8/ -t danielporto/blockbench
+```
+Pay attention to the "/" at the end. It is required. 
+### For amd64
+```
+docker build . -t danielporto/blockbench
+```
+
 ## Workloads 
 
 ### Macro-benchmark
