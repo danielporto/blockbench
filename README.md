@@ -9,14 +9,18 @@ BlockBench comes with both [macro benchmark workloads](src/macro) for evaluating
 
 
 ## Build the binary for docker
-### For Mac M1
+### Build multiarch containers
+Pre-tasks
 ```
-docker build . --build-arg BUILD_ARCH=amd64v8/ -t danielporto/blockbench
+docker buildx ls
+docker buildx create --name porto
+docker buildx use porto
+docker buildx inspect --bootstrap
 ```
-Pay attention to the "/" at the end. It is required. 
-### For amd64
+Build and push images
 ```
-docker build . -t danielporto/blockbench
+docker buildx --platform linux/arm64,linux/amd64 --tag danielporto/blockbench:latest .
+docker buildx --platform linux/arm64,linux/amd64 --tag danielporto/blockbench:latest --push .
 ```
 
 ## Workloads 
